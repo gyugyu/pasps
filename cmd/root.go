@@ -34,6 +34,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var profile string
 var padding int
 
 var rootCmd = &cobra.Command{
@@ -47,7 +48,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		client, err := helper.GetClient()
+		client, err := helper.GetClient(profile)
 		if err != nil {
 			return err
 		}
@@ -90,6 +91,6 @@ func init() {
 
 	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.pasps.yaml)")
 
-	rootCmd.Flags().BoolP("horizontal", "", false, "horizontal")
-	rootCmd.Flags().IntVarP(&padding, "padding", "p", 1, "number of padding")
+	rootCmd.Flags().StringVarP(&profile, "profile", "p", "default", "profile name of gapy")
+	rootCmd.Flags().IntVarP(&padding, "padding", "", 1, "number of padding")
 }

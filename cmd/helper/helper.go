@@ -26,36 +26,42 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
 
-func GetClient() (*http.Client, error) {
-	b, err := os.ReadFile("credentials.json")
+func GetClient(profile string) (*http.Client, error) {
+	home, err := os.UserHomeDir()
 	if err != nil {
 		return nil, err
 	}
 
-	config, err := google.ConfigFromJSON(b, "https://www.googleapis.com/auth/spreadsheets")
+	profilePath := filepath.Join(home, ".gapy", profile)
+	credentialsJson, err := os.ReadFile(filepath.Join(profilePath, "credentials.json"))
 	if err != nil {
 		return nil, err
 	}
 
-	tokFile := "token.json"
-	f, err := os.Open(tokFile)
+	config, err := google.ConfigFromJSON(credentialsJson, "https://www.googleapis.com/auth/spreadsheets")
 	if err != nil {
 		return nil, err
 	}
 
-	defer f.Close()
-	tok := &oauth2.Token{}
-	err = json.NewDecoder(f).Decode(tok)
+	tokenFile, err := os.Open(filepath.Join(profilePath, "token.json"))
 	if err != nil {
 		return nil, err
 	}
 
-	return config.Client(context.Background(), tok), nil
+	defer tokenFile.Close()
+	token := &oauth2.Token{}
+	err = json.NewDecoder(tokenFile).Decode(token)
+	if err != nil {
+		return nil, err
+	}
+
+	return config.Client(context.Background(), token), nil
 }
 
 func CreateValues(rows [][]string, padding int) [][]interface{} {
